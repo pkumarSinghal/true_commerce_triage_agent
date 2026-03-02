@@ -42,9 +42,9 @@ All tests run offline (stub Remediation LLM and rule-based classifier).
 
 ## CI/CD
 
-- **GitHub Actions:** [.github/workflows/ci.yml](.github/workflows/ci.yml) runs on push/PR to `main` or `master`: ruff lint and pytest.
-- **Strategy:** Lint and test on every PR; optional promptfoo step can be added for prompt regression.
+- **GitHub Actions:** [.github/workflows/ci.yml](.github/workflows/ci.yml) runs on push/PR to `main` or `master`: ruff lint, ruff format check, and pytest.
+- See [docs/CI_CD_STRATEGY.md](docs/CI_CD_STRATEGY.md) for strategy and possible extensions (coverage, Docker, deploy).
 
 ## Docs
 
-See [docs/README.md](docs/README.md) for the full list. Key entries: [architecture](docs/architecture.md), [decisions](docs/decisions.md), [LOCAL_SETUP](docs/LOCAL_SETUP.md), [load_testing](docs/load_testing.md), [TEST_HARNESS](docs/TEST_HARNESS.md).
+See [docs/README.md](docs/README.md) for the full list. Key entries: [architecture](docs/architecture.md), [decisions](docs/decisions.md), [LOCAL_SETUP](docs/LOCAL_SETUP.md), [load_testing](docs/load_testing.md), [TEST_HARNESS](docs/TEST_HARNESS.md), [CI/CD strategy](docs/CI_CD_STRATEGY.md), [handoff checklist](docs/HANDOFF_CHECKLIST.md).
