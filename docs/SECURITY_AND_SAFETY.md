@@ -1,9 +1,11 @@
 # Security and Safety
 
+For the current triage MVP, the policy engine and ToolRegistry are not implemented; this document describes the intended safety model for future extension (e.g. when adding tools or event-bus ingest).
+
 ## Policy Allowlists
 
-- **Policy engine** (`app/policy/policy_engine.py`) enforces which tools/actions are allowed per case (or tenant). Default: allowlist; unknown actions are denied.
-- **Orchestrator** checks policy before every tool execution. If denied, trace outcome `denied` and do not call the tool.
+- **Policy engine** (e.g. `app/policy/policy_engine.py` when introduced) enforces which tools/actions are allowed per case (or tenant). Default: allowlist; unknown actions are denied.
+- **Orchestrator** would check policy before every tool execution. If denied, trace outcome `denied` and do not call the tool.
 
 ## Least Privilege
 
@@ -12,7 +14,7 @@
 
 ## Idempotency
 
-- **Mandatory for side effects.** Every tool execution is keyed by an idempotency key (e.g. case_id + step index). `IdempotencyStore` records seen keys; duplicate key → skip execution, no duplicate side effect.
+- **Mandatory for side effects** (when tools are used). Every tool execution would be keyed by an idempotency key (e.g. case_id + step index). `IdempotencyStore` records seen keys; duplicate key → skip execution, no duplicate side effect.
 - Keys must be deterministic from the plan and case so replay produces the same keys.
 
 ## Circuit Breaker

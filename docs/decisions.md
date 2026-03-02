@@ -21,9 +21,18 @@
 - **Why Temporal stub:** We avoid the Temporal SDK dependency for MVP so the repo runs locally without extra infrastructure. The orchestrator exposes the same interfaces (workflow-shaped, activities for I/O); production swaps in the real Temporal SDK so workflows are durable and replayable, with non-deterministic or I/O-heavy work confined to activities.
 - **Why Transitions:** We use the Transitions library for the case lifecycle FSM so state and guards are deterministic, testable, and explicit. No LLM calls happen inside the FSM; the orchestrator drives the FSM and delegates stochastic work to the agent/LLM layer.
 - **Why PydanticAI:** The design uses Pydantic AI as the agent runtime for structured outputs (Plan/Decision), tool calling, and Pydantic validation so the agent always returns a valid, parseable result. The current implementation uses `TriageOrchestrator` with LiteLLM directly; the architecture diagram’s “Orchestration agent (Pydantic AI)” is the intended agent runtime—production or a future iteration can use Pydantic AI for the orchestration agent to get typed tools and outputs.
+- **Programmatic hand-off and PydanticAI:** The triage pipeline uses **programmatic hand-off** (see [PydanticAI multi-agent](https://ai.pydantic.dev/multi-agent-applications/)): the service/orchestrator (application code) runs pipeline steps in sequence; no agent calls another agent. Classification and Remediation LLMs are invoked by the orchestrator. A future iteration can use PydanticAI agents with `output_type=ClassificationResult` / `RemediationResult`, calling `classification_agent.run(...)` and `remediation_agent.run(...)` in turn and passing `usage`/`deps` for observability and cost aggregation.
 - **Why DSPy hook:** We keep a placeholder DSPy hook for prompt/program optimization and eval integration (e.g. tuning prompts or programs against metrics). No DSPy dependency is required to run the app; the hook is an extension point when optimization is needed. (DSPi in earlier notes refers to the same.)
 - **Why InMemory bus/store:** No network for tests; swap for Azure Event Hubs, Service Bus, and real TraceStore in production.
 - **Safety:** Idempotency keys on tool execution; circuit breaker for LLM; retries via tenacity; DLQ/replay conventions on bus.
+
+---
+
+## Classification and orchestration (ML vs LLM)
+
+- **Classification: ML/rules vs LLM (token cost).** ML- or rule-based classification is cheap per request (no tokens); the LLM is costly and scales with input/output tokens. We use ML/rules for known patterns and reserve the LLM for the fallback path when the classifier returns `handled=False` (novel or ambiguous cases). That keeps the majority of traffic off the LLM and reduces cost.
+- **When to program vs when to use LLM.** If the task is deterministic and well-defined (e.g. normalization, rule-based classification, response assembly), we implement it in code: no hallucination, low cost, testable. If the problem is highly open-ended, using the LLM as the primary classifier for everything would increase hallucination risk and cost; the sweet spot is not “LLM for everything.”
+- **Best value: dynamic orchestrator + clear I/O.** The main value of the system is the **orchestrator** that coordinates programmable steps (planner, ML classifier, executor) with targeted LLM use (classification fallback, remediation suggestions). The orchestrator takes structured input from the user/API and returns structured output; LLMs are used only where they add clear value (remediation text, rare classification fallback).
 
 ---
 

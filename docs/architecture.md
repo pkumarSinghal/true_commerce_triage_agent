@@ -100,3 +100,9 @@ flowchart LR
 - **Remediation LLM:** Separate LLM; optional RAG (tenant-aware); circuit breaker; deterministic fallback on failure.
 - **Executor:** Builds validated TriageResponse; no LLM.
 - **Tenant:** `tenant_id` flows through all stages so downstream MCP/Agentic servers can be tenant-aware.
+
+## Agent-first composition
+
+The triage path is **agent-first**: the service composes **Planner → runner → Executor**. The default runner runs the **Triage Orchestrator agent** (`app/agents/orchestrator_agent.py`), which is the single LLM entry point and exposes two tools—`classify` and `remediate`—that delegate to the Classification and Remediation PydanticAI agents ([PydanticAI multi-agent](https://ai.pydantic.dev/multi-agent-applications/) tool-based delegation). The service runs the orchestrator agent with the normalized batch, collects tool-return results from the run, and passes them to the Executor to build `TriageResponse`.
+
+For tests and the promptfoo runner (offline, no LLM), the service accepts an optional **runner** that implements the same interface `(plan, tenant_id) -> (classification_results, remediation_results, used_cf, used_rf)`. The stub runner uses `TriageOrchestrator` (rule-based classifier + stub Classification/Remediation LLMs) and its `run_triage_from_plan` method so no live LLM is called.

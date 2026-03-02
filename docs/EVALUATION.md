@@ -8,8 +8,20 @@ All evaluation runs **offline**: no network calls. Use stubs (offline model, in-
 uv sync --all-extras
 uv run pytest                    # unit + integration
 uv run pytest -v tests/          # verbose
+uv run pytest --cov=app --cov-report=term-missing   # coverage report
 npx promptfoo eval -c eval/promptfoo/promptfooconfig.yaml   # prompt/output regression (from repo root)
 ```
+
+## Coverage and agent tests
+
+- **Coverage:** Run `uv run pytest --cov=app --cov-report=term-missing`. Current target is high coverage on `app/`; gaps are mainly in LLM fallback paths (classification_llm, remediation_llm) and some orchestrator branches.
+- **PydanticAI agents:** `tests/test_agents.py` tests the **Classification** and **Remediation** agents and the **orchestrator** paths **offline** using [`TestModel`](https://ai.pydantic.dev/api/models/test/) (no real LLM calls):
+  - **Classification agent:** structured output (classification, severity_score) with TestModel.
+  - **Remediation agent:** structured output (remediation_suggestion) with TestModel.
+  - **Programmatic loop** (`run_triage_via_agents_loop`): per-item classify then remediate with both agents overridden by TestModel.
+  - **Orchestrator agent** (`run_triage_via_agent`): LLM chooses tools; TestModel drives tool calls; delegate agents also use TestModel.
+  - **collect_tool_results_from_run:** parsing of tool-return messages into classification/remediation lists.
+- **API and orchestrator:** `tests/test_triage_api.py` and `tests/test_orchestrator.py` use the **stub** runner (TriageOrchestrator with RuleBasedClassifier and StubRemediationLLM), so no PydanticAI agents or live LLM are used there. Agent logic is covered by `test_agents.py`.
 
 ## How to use promptfoo
 
@@ -22,7 +34,7 @@ npx promptfoo eval -c eval/promptfoo/promptfooconfig.yaml   # prompt/output regr
 - **Location:** Test data is defined in `tests/fixtures.py`: `SYNTHETIC_ITEMS` (10 items), `synthetic_request_dict()` (3-item dict for backward-compat TestClient/promptfoo), `synthetic_batch1_dict()` and `synthetic_batch2_dict()` (5 items each) for two-batch live tests and promptfoo.
 - **Shapes:** Multiple shapes simulate semi-structured ingest: timeout, 404, rate limit, 500, 401, validation, DB error, network unreachable, minimal, and optional fields (source, timestamp). Batch 1 and batch 2 are used by `scripts/run_api_tests.sh` and can be used in promptfoo cases.
 - **Tenant:** `tenant_id` is set to `tenant_001` in the synthetic requests for tenant-aware tests.
-- **Usage:** Used by `tests/test_orchestrator.py`, `tests/test_triage_api.py`, by promptfoo cases, and by the test harness (`scripts/run_api_tests.sh` with `test_data_batch1.json` / `test_data_batch2.json`). Orchestrator tests inject `RuleBasedClassifier` and `StubRemediationLLM` (and optionally `StubClassificationLLM` for the fallback path) so no real LLM is called; the Classification LLM and Remediation LLM agent paths are exercised only via stubs in CI/local tests. Real LLM calls occur only when running the API without stub injection (e.g. with live LiteLLM/Ollama).
+- **Usage:** Used by `tests/test_orchestrator.py`, `tests/test_triage_api.py`, by promptfoo cases, and by the test harness (`scripts/run_api_tests.sh` with `test_data_batch1.json` / `test_data_batch2.json`). The API is wired through `TriageService`; `tests/conftest.py` injects a stub orchestrator (with `RuleBasedClassifier` and `StubRemediationLLM`, and optionally `StubClassificationLLM` for the fallback path) so no real LLM is called in tests. Real LLM calls occur only when running the API without stub injection (e.g. with live LiteLLM/Ollama).
 
 ## pytest vs promptfoo
 

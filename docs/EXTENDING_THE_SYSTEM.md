@@ -1,44 +1,38 @@
 # Extending the System — Cookbook
 
-Use this cookbook to add features without breaking layers or contracts. Always start with a Problem Breakdown in `docs/breakdowns/`.
+Use this cookbook to add features without breaking layers or contracts. Start with a Problem Breakdown in `docs/breakdowns/` for non-trivial changes.
 
-## Add a New Event Type
+**Relevant paths (True Commerce triage):** Contracts in `app/contracts/triage.py`; service in `app/services/triage_service.py`; orchestrator in `app/orchestrator/triage_orchestrator.py`; planner in `app/planner/triage_planner.py`; classifier in `app/classifier/`; remediation in `app/remediation/`; executor in `app/executor/triage_executor.py`.
 
-1. **Contracts:** Ensure `CanonicalEvent` supports the new `event_type` (payload is `dict`; add validation in canonicalization if needed). Optionally extend `app/contracts/events.py` with a tagged union or discriminator.
-2. **Orchestrator:** In `app/orchestrator/stub.py`, handle the new event type in the workflow (e.g. update state, call agent). No new layer.
-3. **API:** Ingest routes already accept generic `event_type`; add a demo payload in `GET /v1/demo` if desired.
-4. **Tests:** Add pytest for ingest with new event type and expected trace/state. Add promptfoo case if agent behavior should change.
+## Add a new field to TriageRequest or TriageResponse
 
-## Add a New Tool
+1. **Contracts:** Add the field to the Pydantic models in `app/contracts/triage.py`. Keep or bump `schema_version` if you change the wire format.
+2. **Planner / Executor:** If the field flows through the pipeline, update `TriagePlanner` (e.g. into `NormalizedError`) and/or `TriageExecutor` (e.g. into `TriageResult` or `TriageResponse`).
+3. **Tests:** Update `tests/fixtures.py` and any tests that build requests or assert on responses. Add or adjust promptfoo cases in `eval/promptfoo/` if the runner or assertions depend on the new field.
 
-1. **Contracts:** Add `Action` enum value in `app/contracts/decisions.py`. Ensure `ToolCall`/`ToolResult` stay generic (or extend with optional fields).
-2. **Policy:** In `app/policy/policy_engine.py`, add the new action to the allowlist (or make it configurable).
-3. **Tool implementation:** Create `app/tools/tool_*.py` with a function `(idempotency_key, arguments) -> ToolResult`. Register in `app/services/case_service.py` (or wherever the registry is built) with `registry.register("action_name", handler)`.
-4. **Agent:** Update prompts so the agent can propose the new action; ensure fallback plan can include it if needed.
-5. **Tests:** pytest for tool execution and policy deny. promptfoo case for “plan includes new tool” or “policy denies new tool” as needed.
+## Add or change a classifier
 
-## Add a New Policy Guard
+1. **Interface:** Classifiers implement the protocol in `app/classifier/protocol.py` (`classify(normalized) -> ClassificationResult`).
+2. **Implementation:** Add a new implementation (e.g. in `app/classifier/`) or change `app/classifier/rule_based.py` / `app/classifier/ml_stub.py`. For ML, you can swap the stub for a real model behind the same interface.
+3. **Orchestrator / Service:** The orchestrator is constructed in `TriageService` (which uses `TriageOrchestrator`). Inject your classifier when building the orchestrator (e.g. in tests or via a factory). Default construction in `app/orchestrator/triage_orchestrator.py` uses `RuleBasedClassifier`; change there or pass it in from `app/services/triage_service.py` if you need a different default.
+4. **Tests:** Add pytest for the new classifier; use stubs in `tests/stubs.py` for API/orchestrator tests. Add promptfoo cases if classification/remediation output behavior changes.
 
-1. **Policy FSM:** In `app/policy/fsm.py`, add states/transitions or conditions (Transitions API). Keep logic deterministic.
-2. **Policy engine:** In `app/policy/policy_engine.py`, add allowlist/denylist or OPA-ready adapter logic.
-3. **Orchestrator:** Call policy before agent or before each tool; skip or fallback when guard fails.
-4. **Tests:** pytest for “guard blocks X”; promptfoo for “policy denies” case if agent could have requested the blocked action.
+## Add a step in the triage pipeline
 
-## Add a New Agent Prompt
+1. **Contracts:** If the step consumes or produces new data, add or extend models in `app/contracts/triage.py` (e.g. a new result type or fields on `NormalizedError`).
+2. **Orchestrator:** In `app/orchestrator/triage_orchestrator.py`, add the step in `run_triage` (e.g. after planner or between classifier and remediation). Keep the orchestrator deterministic; put stochastic work in the agent/LLM layer.
+3. **Service:** No change needed if the orchestrator still exposes `run_triage(request) -> TriageResponse`; the API continues to call `TriageService.run_triage`.
+4. **Tests:** Add unit tests for the new step and integration tests that run the full pipeline with mocks. Update promptfoo if the final response shape or assertions change.
 
-1. **Prompts:** In `app/agents/prompts.py`, add or change the prompt text. **Bump `PROMPT_VERSION`.**
-2. **decisions.md:** Add an entry: what changed, why, and that promptfoo cases were added/updated.
-3. **promptfoo:** Add or update cases in `eval/promptfoo/cases/` and assertions in `promptfooconfig.yaml`. Run `promptfoo eval` offline.
-4. **Observability:** Ensure `prompt_version` is on spans and in trace payloads.
+## Add or change a prompt (Classification or Remediation LLM)
 
-## Add a promptfoo Regression Case
+1. **Code:** Update the prompt in `app/classifier/classification_llm.py` or `app/remediation/remediation_llm.py`. Bump the `CLASSIFICATION_PROMPT_VERSION` or `REMEDIATION_PROMPT_VERSION` constant.
+2. **decisions.md:** Add an entry describing what changed and why; note promptfoo impact.
+3. **promptfoo:** Add or update cases in `eval/promptfoo/cases/` and assertions in `eval/promptfoo/promptfooconfig.yaml`. Run `npx promptfoo eval -c eval/promptfoo/promptfooconfig.yaml` offline.
+4. **Observability:** Ensure the prompt version is included in spans or trace payloads when you add OTel.
 
-1. Add a YAML file under `eval/promptfoo/cases/` (e.g. `case_004_new_behavior.yaml`) with `vars` and optional `assert` overrides.
-2. In `eval/promptfoo/promptfooconfig.yaml`, add the case to the test list or use a glob. Add assertions: schema match, step count, fallback flag, forbidden tool not present, etc.
-3. Run `promptfoo eval` and commit.
+## Add a promptfoo regression case
 
-## Add New Trace Fields
-
-1. **Contracts:** In `app/contracts/trace.py`, add optional fields to `TraceEntry` (e.g. `cost_proxy`, `model_name`). Bump `schema_version` if you version the trace schema.
-2. **Orchestrator / agent / tools:** Where you create `TraceEntry`, set the new fields.
-3. **Observability doc:** Update `docs/OBSERVABILITY.md` with the new fields and when they are set.
+1. Add a YAML file under `eval/promptfoo/cases/` with `vars` (input to the runner) and optional `assert` overrides.
+2. In `eval/promptfoo/promptfooconfig.yaml`, include the case and set assertions (e.g. schema match, `results.length`, fallback flags).
+3. Run `npx promptfoo eval -c eval/promptfoo/promptfooconfig.yaml` and commit.

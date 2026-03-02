@@ -47,9 +47,4 @@ All tests run offline (stub Remediation LLM and rule-based classifier).
 
 ## Docs
 
-- [docs/READ_THIS_FIRST.md](docs/READ_THIS_FIRST.md) — workflow and layering.
-- [docs/architecture.md](docs/architecture.md) — layer diagram and triage pipeline.
-- [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) — local setup with Llama 3.2 (Ollama).
-- [docs/decisions.md](docs/decisions.md) — ADRs, assumptions, outstanding questions (data lake stream; context shape).
-- [docs/load_testing.md](docs/load_testing.md) — load-testing plan for triage endpoint.
-- [docs/TEST_HARNESS.md](docs/TEST_HARNESS.md) — test harness (start app + run API tests in two batches).
+See [docs/README.md](docs/README.md) for the full list. Key entries: [architecture](docs/architecture.md), [decisions](docs/decisions.md), [LOCAL_SETUP](docs/LOCAL_SETUP.md), [load_testing](docs/load_testing.md), [TEST_HARNESS](docs/TEST_HARNESS.md).

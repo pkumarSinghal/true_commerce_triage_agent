@@ -18,4 +18,4 @@ Create spans for:
 - **No raw PII in logs.** Use structured logging (key=value or JSON).
 - **Redact:** Personal data, tokens, full message bodies. Log redacted snippets or hashes only.
 - **Safe to log:** case_id, event_id, tenant_id (opaque), prompt_version, tool_name, outcome, error codes, trace IDs.
-- **Implementation:** Use `app/services/redaction.py` (or equivalent) for any user/content before logging. Observability layer must call redaction before writing to log streams.
+- **Implementation:** Use a redaction helper (e.g. under `app/services/` or `app/core/`) for any user/content before logging. Observability layer must call redaction before writing to log streams.
