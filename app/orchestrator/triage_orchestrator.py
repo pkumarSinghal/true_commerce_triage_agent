@@ -40,29 +40,32 @@ class TriageOrchestrator:
 
     def run_triage(self, request: TriageRequest) -> TriageResponse:
         """Execute pipeline; propagate tenant_id; track fallback usage."""
-        plan: PlanResult = self.planner.plan(request)
+        plan = self.planner.plan(request)
+        cr, rem, used_cf, used_rf = self.run_triage_from_plan(plan, request.tenant_id)
+        return self.executor.execute(
+            classification_results=cr,
+            remediation_results=rem,
+            tenant_id=request.tenant_id,
+            used_classification_fallback=used_cf,
+            used_remediation_fallback=used_rf,
+        )
+
+    def run_triage_from_plan(
+        self, plan: PlanResult, tenant_id: str | None
+    ) -> tuple[list[ClassificationResult], list[RemediationResult], bool, bool]:
+        """Run classifier + classification LLM + remediation LLM over plan; return (cr, rem, used_cf, used_rf). Used as stub runner for tests and promptfoo."""
         classification_results: list[ClassificationResult] = []
         remediation_results: list[RemediationResult] = []
         used_classification_fallback = False
         used_remediation_fallback = False
-
         for norm in plan.normalized_items:
-            # Classify
             cr = self.classifier.classify(norm)
             if not cr.handled:
                 cr = self.classification_llm.classify(norm)
                 used_classification_fallback = True
             classification_results.append(cr)
-            # Remediate
             rem = self.remediation_llm.suggest(norm, cr)
             if rem.used_fallback:
                 used_remediation_fallback = True
             remediation_results.append(rem)
-
-        return self.executor.execute(
-            classification_results=classification_results,
-            remediation_results=remediation_results,
-            tenant_id=request.tenant_id,
-            used_classification_fallback=used_classification_fallback,
-            used_remediation_fallback=used_remediation_fallback,
-        )
+        return classification_results, remediation_results, used_classification_fallback, used_remediation_fallback

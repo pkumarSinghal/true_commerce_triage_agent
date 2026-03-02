@@ -1,5 +1,7 @@
 """Executor: aggregates ClassificationResult + RemediationResult per item into TriageResponse."""
 
+import logging
+
 from app.contracts.triage import (
     ClassificationResult,
     RemediationResult,
@@ -7,6 +9,8 @@ from app.contracts.triage import (
     TriageResult,
     SCHEMA_VERSION,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class TriageExecutor:
@@ -35,6 +39,7 @@ class TriageExecutor:
                     raw_item_index=c.item_index,
                 )
             )
+        logger.debug("executor execute result_count=%s", len(results))
         return TriageResponse(
             schema_version=SCHEMA_VERSION,
             tenant_id=tenant_id,

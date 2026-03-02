@@ -1,11 +1,15 @@
 """Planner: normalize batch items into NormalizedError list. Tenant-aware; no LLM."""
 
+import logging
+
 from app.contracts.triage import (
     PlanResult,
     NormalizedError,
     TriageRequest,
     SCHEMA_VERSION,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class TriagePlanner:
@@ -33,4 +37,6 @@ class TriagePlanner:
                     item_index=i,
                 )
             )
-        return PlanResult(schema_version=SCHEMA_VERSION, normalized_items=normalized)
+        result = PlanResult(schema_version=SCHEMA_VERSION, normalized_items=normalized)
+        logger.debug("planner plan item_count=%s normalized_count=%s", len(request.items), len(normalized))
+        return result
