@@ -103,9 +103,7 @@ def _remediate_tool(
     )
     with logfire.span("remediate_tool", item_index=item_index, tenant_id=tenant_id):
         agent = _get_remediation_agent()
-        prompt = (
-            f"Classification: {classification}, severity: {severity_score}. Message: {message}. Tenant: {tenant_id}"
-        )
+        prompt = f"Classification: {classification}, severity: {severity_score}. Message: {message}. Tenant: {tenant_id}"
         result = agent.run_sync(prompt)
         out = result.output
         out_dict = {
@@ -184,7 +182,9 @@ def collect_tool_results_from_run(
                     (
                         idx,
                         RemediationResult(
-                            remediation_suggestion=d.get("remediation_suggestion", "Manual review required."),
+                            remediation_suggestion=d.get(
+                                "remediation_suggestion", "Manual review required."
+                            ),
                             item_index=idx,
                             used_fallback=bool(d.get("used_fallback", False)),
                         ),
@@ -206,13 +206,17 @@ def run_triage_via_agent(
     """
     if not normalized_items:
         return [], [], False, False
-    logger.info("orchestrator agent run start item_count=%s tenant_id=%s", len(normalized_items), tenant_id)
+    logger.info(
+        "orchestrator agent run start item_count=%s tenant_id=%s", len(normalized_items), tenant_id
+    )
     logfire.info(
         "orchestrator agent run start",
         item_count=len(normalized_items),
         tenant_id=tenant_id,
     )
-    with logfire.span("run_triage_via_agent", item_count=len(normalized_items), tenant_id=tenant_id):
+    with logfire.span(
+        "run_triage_via_agent", item_count=len(normalized_items), tenant_id=tenant_id
+    ):
         agent = get_triage_orchestrator_agent()
         lines = [
             f"item_index={i}: message={norm.message!r}, source={norm.source!r}, tenant_id={norm.tenant_id!r}"
@@ -233,7 +237,12 @@ def run_triage_via_agent(
                     classifications=len(cr),
                     remediations=len(rem),
                 )
-                return _fallback_results(normalized_items), _fallback_remediations(normalized_items), True, True
+                return (
+                    _fallback_results(normalized_items),
+                    _fallback_remediations(normalized_items),
+                    True,
+                    True,
+                )
             logfire.info(
                 "orchestrator agent run complete",
                 classification_count=len(cr),
@@ -242,12 +251,19 @@ def run_triage_via_agent(
             return cr, rem, False, False
         except Exception as e:
             logfire.exception("orchestrator agent run failed", error=str(e))
-            return _fallback_results(normalized_items), _fallback_remediations(normalized_items), True, True
+            return (
+                _fallback_results(normalized_items),
+                _fallback_remediations(normalized_items),
+                True,
+                True,
+            )
 
 
 def _fallback_results(normalized_items: list[NormalizedError]) -> list[ClassificationResult]:
     return [
-        ClassificationResult(classification="unknown", severity_score=0.5, handled=True, item_index=norm.item_index)
+        ClassificationResult(
+            classification="unknown", severity_score=0.5, handled=True, item_index=norm.item_index
+        )
         for norm in normalized_items
     ]
 
@@ -274,7 +290,11 @@ def run_triage_via_agents_loop(
     """
     if not normalized_items:
         return [], [], False, False
-    logger.info("orchestrator agents loop start item_count=%s tenant_id=%s", len(normalized_items), tenant_id)
+    logger.info(
+        "orchestrator agents loop start item_count=%s tenant_id=%s",
+        len(normalized_items),
+        tenant_id,
+    )
     logfire.info(
         "orchestrator agents loop start",
         item_count=len(normalized_items),
@@ -286,7 +306,9 @@ def run_triage_via_agents_loop(
     rem_list: list[RemediationResult] = []
     used_cf = False
     used_rf = False
-    with logfire.span("run_triage_via_agents_loop", item_count=len(normalized_items), tenant_id=tenant_id):
+    with logfire.span(
+        "run_triage_via_agents_loop", item_count=len(normalized_items), tenant_id=tenant_id
+    ):
         for norm in normalized_items:
             # Classify
             class_prompt = f"Error (tenant_id={tenant_id}): {norm.message}"
@@ -295,7 +317,11 @@ def run_triage_via_agents_loop(
             try:
                 logger.debug("classification agent call item_index=%s", norm.item_index)
                 class_result = classification_agent.run_sync(class_prompt)
-                logger.debug("classification agent result item_index=%s classification=%s", norm.item_index, class_result.output.classification)
+                logger.debug(
+                    "classification agent result item_index=%s classification=%s",
+                    norm.item_index,
+                    class_result.output.classification,
+                )
                 cr_list.append(
                     ClassificationResult(
                         classification=class_result.output.classification,
@@ -305,7 +331,9 @@ def run_triage_via_agents_loop(
                     )
                 )
             except Exception as e:
-                logfire.warn("classification agent failed for item", item_index=norm.item_index, error=str(e))
+                logfire.warn(
+                    "classification agent failed for item", item_index=norm.item_index, error=str(e)
+                )
                 used_cf = True
                 cr_list.append(
                     ClassificationResult(
@@ -341,7 +369,9 @@ def run_triage_via_agents_loop(
                     )
                 )
             except Exception as e:
-                logfire.warn("remediation agent failed for item", item_index=norm.item_index, error=str(e))
+                logfire.warn(
+                    "remediation agent failed for item", item_index=norm.item_index, error=str(e)
+                )
                 used_rf = True
                 rem_list.append(
                     RemediationResult(
@@ -356,5 +386,3 @@ def run_triage_via_agents_loop(
             remediation_count=len(rem_list),
         )
     return cr_list, rem_list, used_cf, used_rf
-
-

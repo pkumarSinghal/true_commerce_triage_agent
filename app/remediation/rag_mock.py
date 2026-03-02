@@ -15,7 +15,9 @@ DEFAULT_DOCS = [
 class RAGMock:
     """In-memory RAG: returns fixed docs or tenant-keyed docs. Production swaps for vector store."""
 
-    def __init__(self, docs: list[str] | None = None, tenant_docs: dict[str, list[str]] | None = None):
+    def __init__(
+        self, docs: list[str] | None = None, tenant_docs: dict[str, list[str]] | None = None
+    ):
         self.docs = docs or DEFAULT_DOCS
         self.tenant_docs = tenant_docs or {}
 

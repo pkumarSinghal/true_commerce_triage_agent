@@ -9,7 +9,9 @@ from fastapi import FastAPI
 from app.api.triage import router as triage_router
 
 # LOG_LEVEL=DEBUG to see agent calls and per-item debug logs (default INFO)
-logging.basicConfig(level=getattr(logging, os.environ.get("LOG_LEVEL", "INFO").upper(), logging.INFO))
+logging.basicConfig(
+    level=getattr(logging, os.environ.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
+)
 
 # Only require auth when sending to Logfire; local dev works without `logfire auth`.
 logfire.configure(send_to_logfire="if-token-present")

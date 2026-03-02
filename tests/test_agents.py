@@ -1,7 +1,5 @@
 """PydanticAI agents: Classification, Remediation, and orchestrator loop (offline with TestModel)."""
 
-import pytest
-
 from pydantic_ai import models
 from pydantic_ai.models.test import TestModel
 
@@ -109,19 +107,35 @@ def test_collect_tool_results_from_run() -> None:
                     parts=[
                         ToolReturnPart(
                             tool_name="classify",
-                            content={"item_index": 0, "classification": "timeout", "severity_score": 0.7},
+                            content={
+                                "item_index": 0,
+                                "classification": "timeout",
+                                "severity_score": 0.7,
+                            },
                         ),
                         ToolReturnPart(
                             tool_name="remediate",
-                            content={"item_index": 0, "remediation_suggestion": "Retry.", "used_fallback": False},
+                            content={
+                                "item_index": 0,
+                                "remediation_suggestion": "Retry.",
+                                "used_fallback": False,
+                            },
                         ),
                         ToolReturnPart(
                             tool_name="classify",
-                            content={"item_index": 1, "classification": "not_found", "severity_score": 0.4},
+                            content={
+                                "item_index": 1,
+                                "classification": "not_found",
+                                "severity_score": 0.4,
+                            },
                         ),
                         ToolReturnPart(
                             tool_name="remediate",
-                            content={"item_index": 1, "remediation_suggestion": "Check path.", "used_fallback": False},
+                            content={
+                                "item_index": 1,
+                                "remediation_suggestion": "Check path.",
+                                "used_fallback": False,
+                            },
                         ),
                     ],
                 )

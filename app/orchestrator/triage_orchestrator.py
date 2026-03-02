@@ -68,4 +68,9 @@ class TriageOrchestrator:
             if rem.used_fallback:
                 used_remediation_fallback = True
             remediation_results.append(rem)
-        return classification_results, remediation_results, used_classification_fallback, used_remediation_fallback
+        return (
+            classification_results,
+            remediation_results,
+            used_classification_fallback,
+            used_remediation_fallback,
+        )

@@ -36,7 +36,9 @@ def _use_orchestrator_agent() -> bool:
     return model.startswith("anthropic/")
 
 
-def _default_runner(plan: PlanResult, tenant_id: str | None) -> tuple[list[ClassificationResult], list[RemediationResult], bool, bool]:
+def _default_runner(
+    plan: PlanResult, tenant_id: str | None
+) -> tuple[list[ClassificationResult], list[RemediationResult], bool, bool]:
     """Use orchestrator agent (tool choice) when Claude/anthropic or USE_ORCHESTRATOR_AGENT=1; else programmatic loop."""
     if _use_orchestrator_agent():
         logger.info("triage runner: orchestrator agent (LLM chooses classify/remediate tools)")
@@ -63,7 +65,11 @@ class TriageService:
 
     def run_triage(self, request: TriageRequest) -> TriageResponse:
         """Run the triage pipeline and return the validated response."""
-        logger.info("triage run_triage start item_count=%s tenant_id=%s", len(request.items), request.tenant_id)
+        logger.info(
+            "triage run_triage start item_count=%s tenant_id=%s",
+            len(request.items),
+            request.tenant_id,
+        )
         with logfire.span("triage_service.run_triage", tenant_id=request.tenant_id):
             plan = self._planner.plan(request)
             logger.debug("triage plan normalized_count=%s", len(plan.normalized_items))
@@ -75,7 +81,11 @@ class TriageService:
             if not plan.normalized_items:
                 logfire.info("triage skipped", reason="no normalized items")
                 return self._executor.execute(
-                    [], [], tenant_id=request.tenant_id, used_classification_fallback=False, used_remediation_fallback=False
+                    [],
+                    [],
+                    tenant_id=request.tenant_id,
+                    used_classification_fallback=False,
+                    used_remediation_fallback=False,
                 )
             cr, rem, used_cf, used_rf = self._runner(plan, request.tenant_id)
             logfire.info(

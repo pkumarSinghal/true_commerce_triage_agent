@@ -38,5 +38,7 @@ class TriagePlanner:
                 )
             )
         result = PlanResult(schema_version=SCHEMA_VERSION, normalized_items=normalized)
-        logger.debug("planner plan item_count=%s normalized_count=%s", len(request.items), len(normalized))
+        logger.debug(
+            "planner plan item_count=%s normalized_count=%s", len(request.items), len(normalized)
+        )
         return result

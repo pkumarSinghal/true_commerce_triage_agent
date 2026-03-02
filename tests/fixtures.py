@@ -42,7 +42,12 @@ SYNTHETIC_ITEMS = [
     ),
     TriageRequestItem(raw_payload={"err": "partial payload"}, message="partial payload"),
     TriageRequestItem(
-        raw_payload={"message": "Service unavailable", "code": 503, "source": "gateway", "timestamp": "2025-01-15T12:00:00Z"},
+        raw_payload={
+            "message": "Service unavailable",
+            "code": 503,
+            "source": "gateway",
+            "timestamp": "2025-01-15T12:00:00Z",
+        },
         message="Service unavailable",
     ),
 ]
