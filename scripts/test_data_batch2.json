@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "tenant_id": "tenant_001",
+  "items": [
+    {"message": "Validation failed", "code": 422, "errors": [{"field": "amount", "detail": "must be positive"}]},
+    {"message": "Database connection refused", "db": "orders"},
+    {"message": "Network unreachable", "host": "api.upstream.com"},
+    {"err": "partial payload"},
+    {"message": "Service unavailable", "code": 503, "source": "gateway", "timestamp": "2025-01-15T12:00:00Z"}
+  ]
+}
