@@ -2,19 +2,7 @@
 
 import pytest
 from app.orchestrator.triage_orchestrator import TriageOrchestrator
-from app.remediation.remediation_llm import RemediationLLM
-from app.contracts.triage import RemediationResult
-
-
-class StubRemediationLLM(RemediationLLM):
-    """Returns fixed suggestion without calling real LLM."""
-
-    def suggest(self, normalized, classification_result):
-        return RemediationResult(
-            remediation_suggestion="Check logs and retry.",
-            item_index=normalized.item_index,
-            used_fallback=False,
-        )
+from tests.stubs import StubRemediationLLM
 
 
 @pytest.fixture
