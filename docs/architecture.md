@@ -6,63 +6,28 @@ Event-driven, multi-agent stochastic decision system. Data flows in one directio
 
 ## Layer Diagram (Mermaid)
 
-The layer diagram below also represents the **Intelligent Event Triage pipeline**: Sources/Bus feed the Orchestrator; Policy guards the Agent subgraph; the Agent subgraph is the triage flow (Orchestration agent → Planner → Classifier → Classification LLM fallback → Remediation LLM → Executor); Tools and Observability complete the flow.
+Compact view of the stack: one node per layer. Data flows left to right; Orchestrator also feeds Observability.
 
 ```mermaid
 flowchart LR
-  subgraph Sources
-    A[Azure Event Hubs / Service Bus]
-    B[API POST /v1/ingest /v1/triage]
-  end
-  subgraph Bus
-    C[Event Bus]
-    D[DLQ]
-  end
-  subgraph Orchestrator
-    E[Orchestrator Stub / Temporal]
-  end
-  subgraph Policy
-    F[Transitions FSM]
-    G[Policy Engine Allowlist]
-  end
-  subgraph Agent
-    OrchAgent[Orchestration agent Pydantic AI]
-    PlannerAgent[Planner agent]
-    ClassifierAgent[Classifier agent]
-    ClassificationLLMFallback[Classification LLM fallback]
-    RemediationLLM[Remediation LLM]
-    Executor[Creation LLM Executor]
-  end
-  subgraph Tools
-    I[ToolRegistry]
-    J[tool_a check_status, tool_b notify_user, tool_c open_ticket]
-  end
-  subgraph Observability
-    K[TraceStore]
-    L[OpenTelemetry]
-  end
-  subgraph Sinks
-    M[Snowflake / optional]
-  end
-
-  A --> C
-  B --> C
-  C --> E
-  C --> D
-  E --> F
-  F --> G
-  G --> OrchAgent
-  OrchAgent --> PlannerAgent
-  PlannerAgent --> ClassifierAgent
-  ClassifierAgent --> ClassificationLLMFallback
-  ClassificationLLMFallback --> RemediationLLM
-  RemediationLLM --> Executor
-  Executor --> I
-  I --> J
-  E --> K
-  E --> L
-  K --> M
+  Sources[Sources]
+  Bus[Bus]
+  Orchestrator[Orchestrator]
+  Policy[Policy]
+  Agent[Agent]
+  Tools[Tools]
+  Observability[Observability]
+  Sinks[Sinks]
+  Sources --> Bus
+  Bus --> Orchestrator
+  Orchestrator --> Policy
+  Policy --> Agent
+  Agent --> Tools
+  Orchestrator --> Observability
+  Observability --> Sinks
 ```
+
+**Continuity with the triage pipeline:** The diagram below (Intelligent Event Triage Pipeline) is the concrete implementation of the **Agent** (and downstream) layer in this repo. Pipeline "Orchestrator" maps to the Orchestrator layer; Pipeline "Planner / Classifier / Remediation LLM / Executor" is the Agent subgraph; Pipeline "TraceStore / Snowflake" maps to Observability and Sinks. The layer diagram above is the generic stack; the triage pipeline below is this implementation's flow.
 
 ## How the Frameworks Complement Each Other
 
