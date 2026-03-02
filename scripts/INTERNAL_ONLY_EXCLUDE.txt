@@ -1,0 +1,16 @@
+# Paths to exclude from True Commerce handoff (internal use only).
+# When preparing a zip/clone for True Commerce, remove or omit every path listed below.
+# Do not ship this file in the handoff bundle.
+.cursor/rules/reference-repo.mdc
+.cursor/rules/project-rules.mdc
+docs/READ_THIS_FIRST.md
+docs/architecture.md
+docs/PROBLEM_BREAKDOWN_TEMPLATE.md
+docs/EXTENDING_THE_SYSTEM.md
+docs/EVALUATION.md
+docs/OBSERVABILITY.md
+docs/decisions.md
+docs/breakdowns/
+docs/SECURITY_AND_SAFETY.md
+docs/RAG_ARCHITECTURE.md
+scripts/INTERNAL_ONLY_EXCLUDE.txt
