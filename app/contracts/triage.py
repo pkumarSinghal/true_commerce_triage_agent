@@ -42,7 +42,7 @@ class TriageRequest(BaseModel):
 
     schema_version: str = Field(default=SCHEMA_VERSION)
     tenant_id: str | None = None
-    items: list[TriageRequestItem] = Field(default_factory=list, max_length=100)
+    items: list[TriageRequestItem] = Field(default_factory=list, max_length=500)
 
 
 class TriageResult(BaseModel):
