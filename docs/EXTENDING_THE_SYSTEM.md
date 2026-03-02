@@ -1,6 +1,6 @@
 # Extending the System — Cookbook
 
-Use this cookbook to add features without breaking layers or contracts. Start with a Problem Breakdown in `docs/breakdowns/` for non-trivial changes.
+Use this cookbook to add features without breaking layers or contracts.
 
 **Relevant paths (True Commerce triage):** Contracts in `app/contracts/triage.py`; service in `app/services/triage_service.py`; orchestrator in `app/orchestrator/triage_orchestrator.py`; planner in `app/planner/triage_planner.py`; classifier in `app/classifier/`; remediation in `app/remediation/`; executor in `app/executor/triage_executor.py`.
 

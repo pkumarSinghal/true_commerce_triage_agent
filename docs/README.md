@@ -10,6 +10,6 @@ Key docs for the True Commerce Triage Agent:
 - [EVALUATION.md](EVALUATION.md) — pytest and promptfoo; offline eval.
 - [OBSERVABILITY.md](OBSERVABILITY.md) — Span names and redaction rules.
 - [SECURITY_AND_SAFETY.md](SECURITY_AND_SAFETY.md) — Policy, idempotency, circuit breaker, DLQ.
-- [PROBLEM_BREAKDOWN_TEMPLATE.md](PROBLEM_BREAKDOWN_TEMPLATE.md) — Template for new features.
-- [breakdowns/](breakdowns/) — Problem breakdowns (e.g. intelligent event triage).
 - [EXTENDING_THE_SYSTEM.md](EXTENDING_THE_SYSTEM.md) — Cookbook for adding features.
+- [CI_CD_STRATEGY.md](CI_CD_STRATEGY.md) — CI/CD strategy and possible extensions.
+- [HANDOFF_CHECKLIST.md](HANDOFF_CHECKLIST.md) — Handoff alignment with evaluation criteria.
