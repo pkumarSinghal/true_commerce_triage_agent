@@ -26,14 +26,11 @@ docker build -t triage-agent .
 docker run -p 8000:8000 triage-agent
 ```
 
-## Environment (Ollama for full integration)
+## Local setup (Llama 3.2)
 
-To use a local LLM for Classification and Remediation (e.g. Ollama):
+For step-by-step local setup with Ollama and Llama 3.2 (install, model pull, env, run, verify), see [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md).
 
-- `LITELLM_MODEL`: e.g. `ollama/llama3.2` (default in code).
-- `OLLAMA_BASE_URL` or LiteLLM env: set if Ollama is not on localhost.
-
-Unit tests use mocks and do not call the network. For full integration tests with Ollama, run the app and send requests to `POST /v1/triage` with real payloads.
+**Environment (Ollama):** `LITELLM_MODEL` (e.g. `ollama/llama3.2`, default in code); optional `OLLAMA_BASE_URL` if not localhost. Unit tests use mocks; for full integration with Ollama, run the app and send requests to `POST /v1/triage`.
 
 ## Tests
 
@@ -52,5 +49,7 @@ All tests run offline (stub Remediation LLM and rule-based classifier).
 
 - [docs/READ_THIS_FIRST.md](docs/READ_THIS_FIRST.md) — workflow and layering.
 - [docs/architecture.md](docs/architecture.md) — layer diagram and triage pipeline.
+- [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) — local setup with Llama 3.2 (Ollama).
 - [docs/decisions.md](docs/decisions.md) — ADRs, assumptions, outstanding questions (data lake stream; context shape).
 - [docs/load_testing.md](docs/load_testing.md) — load-testing plan for triage endpoint.
+- [docs/TEST_HARNESS.md](docs/TEST_HARNESS.md) — test harness (start app + run API tests in two batches).
