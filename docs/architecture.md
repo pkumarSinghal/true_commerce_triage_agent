@@ -6,11 +6,13 @@ Event-driven, multi-agent stochastic decision system. Data flows in one directio
 
 ## Layer Diagram (Mermaid)
 
+The layer diagram below also represents the **Intelligent Event Triage pipeline**: Sources/Bus feed the Orchestrator; Policy guards the Agent subgraph; the Agent subgraph is the triage flow (Orchestration agent → Planner → Classifier → Classification LLM fallback → Remediation LLM → Executor); Tools and Observability complete the flow.
+
 ```mermaid
 flowchart LR
   subgraph Sources
     A[Azure Event Hubs / Service Bus]
-    B[API POST /v1/ingest, /v1/cases/:id/event]
+    B[API POST /v1/ingest /v1/triage]
   end
   subgraph Bus
     C[Event Bus]
@@ -24,7 +26,12 @@ flowchart LR
     G[Policy Engine Allowlist]
   end
   subgraph Agent
-    H[PydanticAI Agent]
+    OrchAgent[Orchestration agent Pydantic AI]
+    PlannerAgent[Planner agent]
+    ClassifierAgent[Classifier agent]
+    ClassificationLLMFallback[Classification LLM fallback]
+    RemediationLLM[Remediation LLM]
+    Executor[Creation LLM Executor]
   end
   subgraph Tools
     I[ToolRegistry]
@@ -44,8 +51,13 @@ flowchart LR
   C --> D
   E --> F
   F --> G
-  G --> H
-  H --> I
+  G --> OrchAgent
+  OrchAgent --> PlannerAgent
+  PlannerAgent --> ClassifierAgent
+  ClassifierAgent --> ClassificationLLMFallback
+  ClassificationLLMFallback --> RemediationLLM
+  RemediationLLM --> Executor
+  Executor --> I
   I --> J
   E --> K
   E --> L
