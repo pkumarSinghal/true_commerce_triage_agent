@@ -11,6 +11,13 @@ uv run pytest -v tests/          # verbose
 npx promptfoo eval -c eval/promptfoo/promptfooconfig.yaml   # prompt/output regression (from repo root)
 ```
 
+## Test data
+
+- **Location:** Test data is defined in `tests/fixtures.py`: `SYNTHETIC_ITEMS` (list of `TriageRequestItem`), `SYNTHETIC_REQUEST` (full `TriageRequest`), and `synthetic_request_dict()` (JSON-serializable dict for TestClient and promptfoo).
+- **Shapes:** Three synthetic shapes simulate semi-structured ingest: (1) message + code (e.g. timeout 504), (2) error_detail + path + stack (e.g. 404), (3) minimal (e.g. rate limit). This covers inconsistent payload schemas from real sources.
+- **Tenant:** `tenant_id` is set to `tenant_001` in the synthetic request for tenant-aware tests.
+- **Usage:** Used by `tests/test_orchestrator.py`, `tests/test_triage_api.py`, and by promptfoo cases (same payloads for consistency). Orchestrator tests inject `RuleBasedClassifier` and `StubRemediationLLM` (and optionally `StubClassificationLLM` for the fallback path) so no real LLM is called; the Classification LLM and Remediation LLM agent paths are exercised only via stubs in CI/local tests. Real LLM calls occur only when running the API without stub injection (e.g. with live LiteLLM/Ollama).
+
 ## pytest vs promptfoo
 
 | | pytest | promptfoo |
@@ -32,5 +39,6 @@ npx promptfoo eval -c eval/promptfoo/promptfooconfig.yaml   # prompt/output regr
 
 - **Config:** `eval/promptfoo/promptfooconfig.yaml` — provider points to the offline runner; prompts can be inline or file-based; assertions: schema, contains-json, step count, fallback, no forbidden tool.
 - **Cases:** `eval/promptfoo/cases/*.yaml` — each case has `vars` (input to runner) and optional `assert` overrides.
-- **Runner:** `eval/promptfoo/runner.py` — reads JSON from stdin (or promptfoo), runs agent/orchestrator in offline mode, outputs JSON (Plan + trace summary). No network.
-- **Schemas:** `eval/promptfoo/schemas/` — exported JSON schema for Plan (and optionally TraceSummary) for assertions.
+- **Runner:** `eval/promptfoo/runner.py` — receives context (vars) from promptfoo, runs triage pipeline in offline mode with stub Classification and Remediation LLMs, outputs TriageResponse JSON. No network.
+- **Schemas:** `eval/promptfoo/schemas/` — exported JSON schema for TriageResponse for assertions.
+- **Test data:** promptfoo cases use the same synthetic payloads as pytest (`tests/fixtures.py` / `synthetic_request_dict()`); see `eval/promptfoo/cases/synthetic.yaml` and inline tests in `promptfooconfig.yaml`.
