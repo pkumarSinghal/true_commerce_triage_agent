@@ -1,0 +1,48 @@
+# Offline triage pipeline eval: runner uses stub LLMs, no network.
+# Run from repo root: npx promptfoo eval -c eval/promptfoo/promptfooconfig.yaml
+
+description: Triage pipeline output regression (offline runner, stub LLMs)
+prompts:
+  - "triage"
+providers:
+  - id: exec:python eval/promptfoo/runner.py
+    label: offline-triage-runner
+defaultTest:
+  options:
+    transformVars: {}
+  assert:
+    - type: contains-json
+      value:
+        schema_version: "1.0"
+    - type: javascript
+      value: "Array.isArray(output.results) && output.results.length > 0"
+tests:
+  - description: synthetic three-item request
+    vars:
+      request:
+        schema_version: "1.0"
+        tenant_id: tenant_001
+        items:
+          - message: "Connection timed out after 30s"
+            code: 504
+          - error_detail: "404 Not Found"
+            path: /api/orders/xyz
+          - msg: "rate limit exceeded"
+    assert:
+      - type: contains-json
+        value:
+          schema_version: "1.0"
+          tenant_id: tenant_001
+      - type: javascript
+        value: "output.results.length === 3"
+  - description: single item timeout
+    vars:
+      request:
+        schema_version: "1.0"
+        tenant_id: tenant_42
+        items:
+          - message: "timeout"
+            raw_payload: {}
+    assert:
+      - type: javascript
+        value: "output.results.length === 1 && output.results[0].classification === 'timeout'"

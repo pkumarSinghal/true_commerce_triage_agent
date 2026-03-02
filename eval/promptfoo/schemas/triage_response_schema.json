@@ -1,0 +1,93 @@
+{
+  "$defs": {
+    "TriageResult": {
+      "description": "Single triage result for one item.",
+      "properties": {
+        "classification": {
+          "title": "Classification",
+          "type": "string"
+        },
+        "severity_score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Severity Score",
+          "type": "number"
+        },
+        "remediation_suggestion": {
+          "title": "Remediation Suggestion",
+          "type": "string"
+        },
+        "item_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Item Id"
+        },
+        "raw_item_index": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw Item Index"
+        }
+      },
+      "required": [
+        "classification",
+        "severity_score",
+        "remediation_suggestion"
+      ],
+      "title": "TriageResult",
+      "type": "object"
+    }
+  },
+  "description": "Batch triage response. Tenant-aware; fallback flags for observability.",
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tenant_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tenant Id"
+    },
+    "results": {
+      "items": {
+        "$ref": "#/$defs/TriageResult"
+      },
+      "title": "Results",
+      "type": "array"
+    },
+    "used_classification_fallback": {
+      "default": false,
+      "title": "Used Classification Fallback",
+      "type": "boolean"
+    },
+    "used_remediation_fallback": {
+      "default": false,
+      "title": "Used Remediation Fallback",
+      "type": "boolean"
+    }
+  },
+  "title": "TriageResponse",
+  "type": "object"
+}

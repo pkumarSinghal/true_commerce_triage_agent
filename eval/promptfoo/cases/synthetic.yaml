@@ -1,0 +1,19 @@
+# Same test data as tests/fixtures.py synthetic_request_dict() for consistency.
+description: Synthetic three-item request (fixtures.py shapes)
+vars:
+  request:
+    schema_version: "1.0"
+    tenant_id: tenant_001
+    items:
+      - message: "Connection timed out after 30s"
+        code: 504
+      - error_detail: "404 Not Found"
+        path: /api/orders/xyz
+      - msg: "rate limit exceeded"
+assert:
+  - type: contains-json
+    value:
+      schema_version: "1.0"
+      tenant_id: tenant_001
+  - type: javascript
+    value: "output.results.length === 3"
